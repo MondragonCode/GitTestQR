@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es-MX"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formato de Unidad · Walmart México</title>
+<style>
+  :root{
+    --wmt-blue:#0071ce;
+    --wmt-blue-dark:#041e42;
+    --bodega-yellow:#ffc220;
+    --bodega-dark:#1f1f1f;
+    --sams-navy:#004c97;
+    --ink:#111111;
+    --muted:#8a8f98;
+    --line:#e7e7e7;
+    --bg:#f2f3f5;
+    --card-radius:22px;
+    --pill-radius:999px;
+  }
+  *{box-sizing:border-box;}
+  button{font-family:inherit;}
+  body{
+    margin:0;
+    font-family:'Segoe UI',Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:32px 16px 60px;
+    min-height:100vh;
+  }
+
+  /* ---------- toolbar (outside template) ---------- */
+  .toolbar{
+    width:100%;
+    max-width:610px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:22px;
+    justify-content:center;
+  }
+  .toolbar button{
+    flex:1 1 130px;
+    border:none;
+    border-radius:12px;
+    padding:12px 14px;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .toolbar button:hover{transform:translateY(-2px);opacity:.92;}
+  .toolbar button:active{transform:translateY(0);}
+  #btnSave{background:#2e7d32;}
+  #btnExportHtml{background:var(--wmt-blue);}
+  #btnReset{background:#c62828;}
+
+  /* ---------- card / template ---------- */
+  .card{
+    width:100%;
+    max-width:610px;
+    background:#fff;
+    border-radius:var(--card-radius);
+    box-shadow:0 10px 40px rgba(0,0,0,.08);
+    overflow:hidden;
+    padding-bottom:10px;
+  }
+  header.brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:22px 26px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  header.brand .logo{width:34px;height:34px;flex-shrink:0;object-fit:contain;}
+  header.brand h1{
+    font-size:20px;
+    letter-spacing:.5px;
+    margin:0;
+    font-weight:800;
+  }
+
+  .hero{padding:30px 26px 10px;}
+  .unit-name{
+    font-size:34px;
+    font-weight:900;
+    line-height:1.05;
+    text-transform:uppercase;
+    outline:none;
+    min-height:1.2em;
+    word-break:break-word;
+  }
+  .unit-name:empty:before{
+    content:attr(data-placeholder);
+    color:#c9c9c9;
+  }
+  .unit-name:focus{background:#fffbe6;border-radius:6px;}
+
+  .pill-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:18px 0 4px;
+  }
+  .pill{
+    background:var(--wmt-blue-dark);   color:#fff;
+    border-radius:var(--pill-radius);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:10px 18px;
+    font-weight:800;
+    font-size:13px;
+    cursor:pointer;
+    user-select:none;
+    border:none;
+  }
+  .pill .label{opacity:.75;font-weight:700;letter-spacing:.5px;}
+  .pill [contenteditable]{outline:none;min-width:6px;}
+  .pill [contenteditable]:empty:before{content:attr(data-placeholder);opacity:.6;}
+  #catCircle{
+    width:38px;height:38px;padding:0;
+    justify-content:center;
+    font-size:16px;
+    background:#e4e4e4;
+    color:#555;
+  }
+  #catCircle.is-w{background:var(--wmt-blue);color:#fff;}
+  #catCircle.is-b{background:var(--bodega-yellow);color:#1f1f1f;}
+  #catCircle.is-s{background:var(--sams-navy);color:#fff;}
+  .pin-btn{background:none;border:none;color:inherit;cursor:pointer;font-size:14px;padding:0;line-height:1;}
+  .pill-date{
+    background:none;border:none;color:#fff;font-weight:800;font-size:13px;
+    font-family:inherit;padding:0;outline:none;cursor:pointer;
+    color-scheme:dark;
+  }
+  .pill-date::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}
+
+  .media-wrap{padding:22px 26px 6px;}
+  .media-card{
+    position:relative;
+    border:2px dashed #d6d6d6;
+    border-radius:20px;
+    overflow:hidden;
+    aspect-ratio:16/11;
+    background:#fafafa;
+  }
+  .slides{
+    display:flex;
+    height:100%;
+    transition:transform .35s ease;
+  }
+  .slide{
+    min-width:100%;
+    height:100%;
+    background-size:cover;
+    background-position:center;
+    background-color:#eee;
+  }
+  .media-empty{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:8px;color:#a7a7a7;cursor:pointer;font-size:13px;font-weight:600;text-align:center;padding:20px;
+  }
+  .media-empty svg{width:38px;height:38px;opacity:.6;}
+  .caption-overlay{
+    position:absolute;left:0;right:0;bottom:0;
+    background:linear-gradient(0deg,rgba(0,0,0,.75),rgba(0,0,0,0));
+    padding:34px 16px 12px;
+    color:#fff;
+  }
+  .caption-overlay .eyebrow{
+    font-size:10px;font-weight:800;letter-spacing:1px;color:#ffc220;
+    text-transform:uppercase;outline:none;
+  }
+  .caption-overlay .title{
+    font-size:15px;font-weight:700;outline:none;
+  }
+  .nav-arrow{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:32px;height:32px;border-radius:50%;border:none;
+    background:rgba(255,255,255,.85);cursor:pointer;font-size:16px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.2);
+    z-index:5;
+  }
+  .nav-arrow.prev{left:10px;}
+  .nav-arrow.next{right:10px;}
+  .dots{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:5;}
+  .dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);}
+  .dots span.active{background:#fff;}
+  .add-img-btn{
+    position:absolute;top:10px;right:10px;z-index:6;
+    background:#041e42;color:#fff;border:none;border-radius:999px;
+    padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;
+  }
+  .add-img-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .remove-img-btn{
+    position:absolute;top:10px;left:10px;z-index:6;
+    background:#c62828;color:#fff;border:none;border-radius:999px;
+    padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;
+  }
+  .remove-img-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .docs-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    padding:26px 26px 6px;
+    text-align:center;
+  }
+  .doc-item{cursor:pointer;}
+  .doc-icon{
+    width:52px;height:52px;border-radius:14px;margin:0 auto 8px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 8px rgba(0,0,0,.12);
+    position:relative;
+  }
+  .doc-icon svg{width:26px;height:26px;}
+  .doc-icon.ok::after{
+    content:"";
+    position:absolute;bottom:-4px;right:-4px;
+    width:18px;height:18px;border-radius:50%;
+    background:#2e7d32;color:#fff;font-size:11px;
+    display:flex;align-items:center;justify-content:center;
+    border:2px solid #fff;
+  }
+  .doc-label{font-size:12px;font-weight:700;color:#555;}
+  .doc-change{font-size:10px;color:var(--wmt-blue);cursor:pointer;text-decoration:underline;display:none;}
+  .doc-item.has-file .doc-change{display:inline-block;}
+
+  .stats-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    padding:20px 26px 6px;
+    text-align:center;
+  }
+  .stat-value{font-size:22px;font-weight:900;outline:none;}
+  .stat-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;outline:none;margin-top:2px;}
+
+  .contact-block{
+    text-align:center;
+    padding:28px 26px 8px;
+  }
+  .avatars{display:flex;justify-content:center;margin-bottom:8px;}
+  .avatars svg{margin-left:-10px;border:2px solid #fff;border-radius:50%;}
+  .contact-title{font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;}
+  .contact-text{
+    font-size:13px;color:#777;margin-top:4px;outline:none;
+    max-width:440px;margin-left:auto;margin-right:auto;
+  }
+  .contact-text:empty:before{content:attr(data-placeholder);color:#bbb;}
+
+  .extra-info{padding:6px 26px 22px;}
+  .extra-info .row{
+    display:flex;justify-content:center;
+    padding:11px 0;border-bottom:1px solid var(--line);
+  }
+  .extra-info .row:last-child{border-bottom:none;}
+  .extra-info .row-value{
+    font-size:13px;color:#333;outline:none;text-align:center;
+    flex:1;word-break:break-word;
+  }
+  .extra-info [contenteditable]:empty:before{content:attr(data-placeholder);color:#bbb;font-weight:400;}
+
+  .footer-bar{height:6px;background:#eee;margin:26px 26px 0;border-radius:6px;}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#111;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;
+    opacity:0;transition:all .25s ease;pointer-events:none;z-index:999;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- locked / read-only mode (exported snapshots) ---------- */
+  body.locked [contenteditable]{cursor:default;}
+  body.locked #catCircle{cursor:default;pointer-events:none;}
+  body.locked #pinBtn{display:none;}
+  body.locked .doc-item.has-file .doc-change{display:none !important;}
+  body.locked .media-empty{cursor:default;}
+  body.locked .unit-name:focus{background:none;}
+  body.locked .pill-date:disabled{opacity:1;-webkit-text-fill-color:#fff;color:#fff;cursor:default;}
+
+  @media(max-width:480px){
+    .docs-row{grid-template-columns:repeat(2,1fr);gap:16px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar" style="display: none;">
+  <button id="btnSave">Guardar progreso</button>
+  <button id="btnExportHtml">Exportar HTML</button>
+  <button id="btnReset">Resetear progreso</button>
+  </div>
+
+<div class="card" id="captureCard">
+
+  <header class="brand">
+    <img class="logo" alt="Walmart spark" src="data:image/png;base64,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">
+    <h1>WALMART MÉXICO</h1>
+  </header>
+
+  <section class="hero">
+    <div class="unit-name" contenteditable="true" data-field="unitName" data-placeholder="INSERTE NOMBRE DE LA UNIDAD">Rensa</div>
+
+    <div class="pill-row">
+      <button class="pill" id="catCircle" title="Click para cambiar: W / B / S" style="background: rgb(0, 113, 206); color: rgb(255, 255, 255);">W</button>
+
+      <div class="pill">
+        <span class="label">DET</span>
+        <span contenteditable="true" data-field="det" data-placeholder="0000" id="detField">0001</span>
+      </div>
+
+      <div class="pill" id="ubicacionPill">
+        <button class="pin-btn" id="pinBtn" title="Usar mi ubicación">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
+        </button>
+        <span contenteditable="true" data-field="ubicacion" data-placeholder="UBICACIÓN">San Luis</span>
+      </div>
+
+      <div class="pill">
+        <input type="date" id="fechaInput" data-field="fecha" class="pill-date">
+      </div>
+    </div>
+  </section>
+
+  <section class="media-wrap">
+    <div class="media-card" id="mediaCard">
+      <div class="slides" id="slides" style="transform: translateX(0%);"></div>
+      <div class="media-empty" id="mediaEmpty" style="display: flex;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 16l4.5-6 3.5 4.5 2.5-3L20 16"></path><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="8" cy="8.5" r="1.5"></circle></svg>
+        <span>Sube hasta 5 imágenes del equipo<br>(clic aquí)</span>
+      </div>
+      <button class="add-img-btn" id="addImgBtn">+ imagen</button>
+      <button class="remove-img-btn" id="removeImgBtn" disabled="">- imagen</button>
+      <button class="nav-arrow prev" id="prevBtn" style="display:none">‹</button>
+      <button class="nav-arrow next" id="nextBtn" style="display:none">›</button>
+      <div class="dots" id="dots"></div>
+      <div class="caption-overlay" id="captionOverlay" style="display:none">
+        <div class="eyebrow" contenteditable="true" data-field="capEyebrow" data-placeholder="CATEGORÍA">EQUIPO INSTALADO</div>
+        <div class="title" contenteditable="true" data-field="capTitle" data-placeholder="Descripción breve">Descripción del equipo</div>
+      </div>
+      <input type="file" id="imgInput" accept="image/*" multiple="" hidden="">
+    </div>
+  </section>
+
+  <section class="docs-row">
+    <div class="doc-item" data-doc="ficha">
+      <div class="doc-icon" style="background:#1a1a1a;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.9 2.9l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.9-2.9l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.9-2.9l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.9 2.9l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"></path></svg>
+      </div>
+      <div class="doc-label">FICHA TÉCNICA</div>
+      <span class="doc-change">cambiar</span>
+    </div>
+
+    <div class="doc-item" data-doc="manual">
+      <div class="doc-icon" style="background:#e8f7f2;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2fae8b" stroke-width="1.8"><path d="M6 3h9l4 4v14a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"></path><path d="M9 9h6M9 12h6M9 15l1.5 1.5L15 12" stroke="#7fd9c4"></path></svg>
+      </div>
+      <div class="doc-label">MANUAL DE USUARIO</div>
+      <span class="doc-change">cambiar</span>
+    </div>
+
+    <div class="doc-item" data-doc="despiece">
+      <div class="doc-icon" style="background:#7b1fa2;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.1 2.1-2-2 2.1-2.1z"></path></svg>
+      </div>
+      <div class="doc-label">DESPIECE</div>
+      <span class="doc-change">cambiar</span>
+    </div>
+
+    <div class="doc-item" data-doc="infografia">
+      <div class="doc-icon" style="background:linear-gradient(135deg,#ff8a00,#e52e71);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>
+      </div>
+      <div class="doc-label">INFOGRAFÍA</div>
+      <span class="doc-change">cambiar</span>
+    </div>
+  </section>
+
+  <section class="stats-row">
+    <div>
+      <div class="stat-value" id="statOpDays">0</div>
+      <div class="stat-label" contenteditable="true" data-field="stat1lbl">Días de operación</div>
+    </div>
+    <div>
+      <div class="stat-value" id="statElec">90</div>
+      <div class="stat-label" contenteditable="true" data-field="stat2lbl">Garantía eléctrica</div>
+    </div>
+    <div>
+      <div class="stat-value" id="statGen">365</div>
+      <div class="stat-label" contenteditable="true" data-field="stat3lbl">Garantía general</div>
+    </div>
+  </section>
+
+  <section class="contact-block">
+    <div class="avatars">
+      <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17" fill="#ffb74d"></circle><circle cx="17" cy="13" r="6" fill="#fff8"></circle><path d="M4 32c1-8 8-11 13-11s12 3 13 11" fill="#fff8"></path></svg>
+      <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17" fill="#4fc3f7"></circle><circle cx="17" cy="13" r="6" fill="#fff8"></circle><path d="M4 32c1-8 8-11 13-11s12 3 13 11" fill="#fff8"></path></svg>
+      <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17" fill="#ba68c8"></circle><circle cx="17" cy="13" r="6" fill="#fff8"></circle><path d="M4 32c1-8 8-11 13-11s12 3 13 11" fill="#fff8"></path></svg>
+    </div>
+    <div class="contact-title">CONTACTO</div>
+    <div class="contact-text" contenteditable="true" data-field="contactText" data-placeholder="Escribe aquí tus datos de contacto: nombre, puesto, teléfono, correo, etc.">Responsable: __________ · Tel: __________ · Correo: __________</div>
+  </section>
+
+  <section class="extra-info">
+    <div class="row">
+      <span class="row-value" contenteditable="true" data-field="extraValue1" data-placeholder="Escribe aquí..."></span>
+    </div>
+    <div class="row">
+      <span class="row-value" contenteditable="true" data-field="extraValue2" data-placeholder="Escribe aquí..."></span>
+    </div>
+    <div class="row">
+      <span class="row-value" contenteditable="true" data-field="extraValue3" data-placeholder="Escribe aquí..."></span>
+    </div>
+    <div class="row">
+      <span class="row-value" contenteditable="true" data-field="extraValue4" data-placeholder="Escribe aquí..."></span>
+    </div>
+  </section>
+
+  <div class="footer-bar"></div>
+</div>
+
+<div class="toast" id="toast">HTML exportado: 0 imagen(es) y 0 URL(s) incluidas.</div>
+
+<script id="preloaded-state-script">window.__PRELOADED_STATE__ = {"fields":{"unitName":"Rensa","det":"0001","ubicacion":"San Luis","fecha":"2026-09-03","capEyebrow":"EQUIPO INSTALADO","capTitle":"Descripción del equipo","stat1lbl":"Días de operación","stat2lbl":"Garantía eléctrica","stat3lbl":"Garantía general","contactText":"Responsable: __________ · Tel: __________ · Correo: __________","extraValue1":"","extraValue2":"","extraValue3":"","extraValue4":""},"category":"W","images":[],"slideIndex":0,"docs":{"ficha":null,"manual":null,"despiece":null,"infografia":null},"readOnly":true};</script><script id="app-script">
+(function(){
+  const CATS = {
+    W:{bg:'#0071ce', fg:'#ffffff'},
+    B:{bg:'#ffc220', fg:'#1f1f1f'},
+    S:{bg:'#004c97', fg:'#ffffff'}
+  };
+  const catOrder = ['W','B','S'];
+  let currentCat = 'W';
+  let images = [];      // array of dataURLs
+  let slideIndex = 0;
+  const docs = {ficha:null, manual:null, despiece:null, infografia:null}; // {name, data}
+  let isLocked = false; // true = exported/read-only snapshot, editing disabled
+
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  /* ---------------- utils (declared early: showToast is used by loadOnStart below) ---------------- */
+  let toastTimer;
+  function showToast(msg){
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
+  }
+
+  // Strips all editing capability from the template: removes contenteditable,
+  // hides upload/edit affordances, disables the category-cycle button. Used
+  // when this page was opened from an "Exportar HTML" snapshot -- once
+  // exported, nobody should be able to move what was already filled in.
+  function lockTemplate(){
+    isLocked = true;
+    document.body.classList.add('locked');
+    $$('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+    if(fechaInput) fechaInput.disabled = true;
+    const addBtn = $('#addImgBtn');
+    const removeBtn = $('#removeImgBtn');
+    if(addBtn) addBtn.style.display = 'none';
+    if(removeBtn) removeBtn.style.display = 'none';
+  }
+
+  /* ---------------- category circle ---------------- */
+  const catCircle = $('#catCircle');
+  function paintCat(){
+    const c = CATS[currentCat];
+    catCircle.textContent = currentCat;
+    catCircle.style.background = c.bg;
+    catCircle.style.color = c.fg;
+  }
+  catCircle.addEventListener('click', () => {
+    if(isLocked) return;
+    const idx = (catOrder.indexOf(currentCat) + 1) % catOrder.length;
+    currentCat = catOrder[idx];
+    paintCat();
+  });
+  paintCat();
+
+  /* ---------------- DET: digits only ---------------- */
+  const detField = $('#detField');
+  detField.addEventListener('input', () => {
+    if(isLocked) return;
+    const cleaned = detField.textContent.replace(/[^0-9]/g,'');
+    if(cleaned !== detField.textContent){
+      detField.textContent = cleaned;
+      placeCaretAtEnd(detField);
+    }
+  });
+  function placeCaretAtEnd(el){
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  /* ---------------- ubicación: geolocation ---------------- */
+  $('#pinBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if(isLocked) return;
+    const target = $('[data-field="ubicacion"]');
+    if(!navigator.geolocation){
+      showToast('Tu navegador no soporta geolocalización');
+      return;
+    }
+    target.textContent = 'Buscando...';
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const {latitude, longitude} = pos.coords;
+      try{
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+        const j = await r.json();
+        target.textContent = j.display_name ? j.display_name.split(',').slice(0,3).join(',') : `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      }catch(err){
+        target.textContent = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      }
+    }, () => {
+      target.textContent = 'UBICACIÓN';
+      showToast('No se pudo obtener tu ubicación (permiso denegado)');
+    });
+  });
+
+  /* ---------------- auto stats: computed from FECHA APERTURA ---------------- */
+  const ELEC_WARRANTY_DAYS = 90;
+  const GENERAL_WARRANTY_DAYS = 365;
+  const fechaInput = $('#fechaInput');
+  const statOpDays = $('#statOpDays');
+  const statElec = $('#statElec');
+  const statGen = $('#statGen');
+
+  function daysSince(dateStr){
+    if(!dateStr) return null;
+    const start = new Date(dateStr + 'T00:00:00');
+    if(isNaN(start.getTime())) return null;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    return Math.floor((today - start) / 86400000);
+  }
+  function updateStats(){
+    const elapsed = daysSince(fechaInput.value);
+    if(elapsed === null){
+      statOpDays.textContent = '0';
+      statElec.textContent = ELEC_WARRANTY_DAYS;
+      statGen.textContent = GENERAL_WARRANTY_DAYS;
+      return;
+    }
+    const opDays = Math.max(0, elapsed);
+    statOpDays.textContent = opDays;
+    statElec.textContent = Math.max(0, ELEC_WARRANTY_DAYS - elapsed);
+    statGen.textContent = Math.max(0, GENERAL_WARRANTY_DAYS - elapsed);
+  }
+  fechaInput.addEventListener('change', () => { if(!isLocked) updateStats(); });
+  updateStats();
+
+  /* ---------------- image carousel ---------------- */
+  const slidesEl = $('#slides');
+  const dotsEl = $('#dots');
+  const prevBtn = $('#prevBtn');
+  const nextBtn = $('#nextBtn');
+  const mediaEmpty = $('#mediaEmpty');
+  const imgInput = $('#imgInput');
+  const addImgBtn = $('#addImgBtn');
+  const removeImgBtn = $('#removeImgBtn');
+  const captionOverlay = $('#captionOverlay');
+
+  function renderSlides(){
+    slidesEl.innerHTML = '';
+    dotsEl.innerHTML = '';
+    images.forEach((src,i) => {
+      const d = document.createElement('div');
+      d.className = 'slide';
+      d.style.backgroundImage = `url(${src})`;
+      slidesEl.appendChild(d);
+      const dot = document.createElement('span');
+      if(i===slideIndex) dot.className='active';
+      dotsEl.appendChild(dot);
+    });
+    slidesEl.style.transform = `translateX(-${slideIndex*100}%)`;
+    const has = images.length > 0;
+    mediaEmpty.style.display = has ? 'none' : 'flex';
+    captionOverlay.style.display = has ? 'block' : 'none';
+    prevBtn.style.display = images.length > 1 ? 'flex' : 'none';
+    nextBtn.style.display = images.length > 1 ? 'flex' : 'none';
+    addImgBtn.disabled = images.length >= 5;
+    addImgBtn.textContent = images.length >= 5 ? 'máx. 5' : '+ imagen';
+    addImgBtn.style.display = isLocked ? 'none' : '';
+    removeImgBtn.disabled = images.length === 0;
+    removeImgBtn.style.display = isLocked ? 'none' : '';
+  }
+  mediaEmpty.addEventListener('click', () => { if(!isLocked) imgInput.click(); });
+  addImgBtn.addEventListener('click', () => { if(!isLocked) imgInput.click(); });
+  removeImgBtn.addEventListener('click', () => {
+    if(isLocked || images.length === 0) return;
+    images.splice(slideIndex, 1);
+    slideIndex = Math.max(0, Math.min(slideIndex, images.length - 1));
+    renderSlides();
+    showToast(`Imagen eliminada (${images.length}/5).`);
+  });
+  imgInput.addEventListener('change', () => {
+    const files = Array.from(imgInput.files).slice(0, 5 - images.length);
+    if(!files.length) return;
+    const readAsDataURL = file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    Promise.all(files.map(readAsDataURL)).then(results => {
+      images.push(...results);
+      slideIndex = images.length - 1;
+      renderSlides();
+      showToast(`${results.length} imagen(es) agregada(s) (${images.length}/5).`);
+    }).catch(() => showToast('No se pudo leer alguna de las imagenes.'));
+    imgInput.value = '';
+  });
+  prevBtn.addEventListener('click', () => { slideIndex = (slideIndex-1+images.length)%images.length; renderSlides(); });
+  nextBtn.addEventListener('click', () => { slideIndex = (slideIndex+1)%images.length; renderSlides(); });
+  renderSlides();
+
+  /* ---------------- document links (URL instead of file upload) ---------------- */
+  $$('.doc-item').forEach(item => {
+    const key = item.dataset.doc;
+    item.querySelector('.doc-icon').addEventListener('click', () => {
+      if(docs[key]){
+        openUrlInPopup(docs[key]);
+      } else if(!isLocked){
+        askForDocUrl(key, item);
+      }
+    });
+    item.querySelector('.doc-change').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if(isLocked) return;
+      askForDocUrl(key, item);
+    });
+  });
+  function askForDocUrl(key, item){
+    const current = docs[key] || '';
+    const label = item.querySelector('.doc-label').textContent;
+    const input = prompt(`Pega la URL de "${label}":`, current);
+    if(input === null) return;
+    const url = input.trim();
+    if(!url){ docs[key] = null; paintDoc(key); return; }
+    if(!/^https?:\/\//i.test(url)){
+      showToast('La URL debe empezar con http:// o https://');
+      return;
+    }
+    docs[key] = url;
+    paintDoc(key);
+    showToast(`URL guardada en ${label}.`);
+  }
+  function paintDoc(key){
+    const item = document.querySelector(`.doc-item[data-doc="${key}"]`);
+    const icon = item.querySelector('.doc-icon');
+    if(docs[key]){
+      icon.classList.add('ok');
+      item.classList.add('has-file');
+      item.title = docs[key];
+    } else {
+      icon.classList.remove('ok');
+      item.classList.remove('has-file');
+      item.title = '';
+    }
+  }
+  function openUrlInPopup(url){
+    const w = window.open(url, '_blank', 'noopener,width=1000,height=800');
+    if(!w) showToast('El navegador bloqueo la ventana emergente. Revisa el icono de bloqueo en la barra de direcciones.');
+  }
+
+  /* ---------------- save / load progress ---------------- */
+  const STORAGE_KEY = 'walmart_formato_unidad_v1';
+
+  function getFieldValue(el){
+    return el.tagName === 'INPUT' ? el.value : el.textContent;
+  }
+  function setFieldValue(el, val){
+    if(el.tagName === 'INPUT') el.value = val || '';
+    else el.textContent = val || '';
+  }
+  function collectState(){
+    const fields = {};
+    $$('[data-field]').forEach(el => { fields[el.dataset.field] = getFieldValue(el); });
+    return {
+      fields,
+      category: currentCat,
+      images,
+      slideIndex,
+      docs
+    };
+  }
+  function applyState(state){
+    if(!state) return;
+    if(state.fields){
+      Object.keys(state.fields).forEach(key => {
+        const el = document.querySelector(`[data-field="${key}"]`);
+        if(el) setFieldValue(el, state.fields[key]);
+      });
+      updateStats();
+    }
+    if(state.category){ currentCat = state.category; paintCat(); }
+    if(Array.isArray(state.images)){ images = state.images; slideIndex = state.slideIndex||0; renderSlides(); }
+    if(state.docs){
+      Object.keys(state.docs).forEach(key => {
+        if(state.docs[key]){ docs[key] = state.docs[key]; paintDoc(key); }
+      });
+    }
+  }
+
+  $('#btnSave').addEventListener('click', () => {
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
+      showToast('Progreso guardado en este navegador.');
+    }catch(err){
+      showToast('No se pudo guardar (¿archivos muy pesados?)');
+    }
+  });
+
+  (function loadOnStart(){
+    // 1) exported-file snapshot (images/docs included) 2) localStorage
+    if(window.__PRELOADED_STATE__){
+      try{
+        applyState(window.__PRELOADED_STATE__);
+        if(window.__PRELOADED_STATE__.readOnly) lockTemplate();
+        showToast(window.__PRELOADED_STATE__.readOnly
+          ? 'Plantilla exportada: modo solo lectura.'
+          : 'Progreso cargado desde este archivo exportado.');
+      }catch(err){
+        console.error('No se pudo restaurar el estado precargado:', err);
+        alert('Este archivo exportado trae datos pero no se pudieron cargar: ' + err.message);
+      }
+      return;
+    }
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      try{ applyState(JSON.parse(raw)); }catch(err){}
+    }
+  })();
+
+  /* ---------------- export html ---------------- */
+  $('#btnExportHtml').addEventListener('click', () => {
+    try{
+      const clone = document.documentElement.cloneNode(true);
+      // We keep the toolbar's elements IN THE DOM (removing them made the
+      // script crash on load, since it still tries to addEventListener on
+      // them). We just hide them visually with inline CSS instead, so the
+      // exported file has no visible action buttons but the script stays
+      // 100% intact and functional underneath.
+      const toolbarClone = clone.querySelector('.toolbar');
+      if(toolbarClone) toolbarClone.style.display = 'none';
+
+      // Embed the full current state (images + uploaded docs included) so the
+      // exported file opens already populated instead of resetting to blank.
+      // Remove any state snapshot left over from a previous export (in case
+      // the user is re-exporting a file that was already exported before),
+      // so we never restore stale data instead of the current one.
+      clone.querySelectorAll('#preloaded-state-script').forEach(el => el.remove());
+
+      const currentState = collectState();
+      currentState.readOnly = true; // exported snapshots are locked: no more editing
+      const snapshot = JSON.stringify(currentState).replace(/</g, '\\u003c');
+      const stateScript = clone.ownerDocument.createElement('script');
+      stateScript.id = 'preloaded-state-script';
+      stateScript.textContent = `window.__PRELOADED_STATE__ = ${snapshot};`;
+      const mainScript = clone.querySelector('#app-script');
+      if(mainScript && mainScript.parentNode){
+        mainScript.parentNode.insertBefore(stateScript, mainScript);
+      } else {
+        clone.querySelector('body').appendChild(stateScript);
+      }
+
+      const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+      const blob = new Blob([html], {type:'text/html'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const name = ($('[data-field="unitName"]').textContent || 'formato-unidad').trim().replace(/\s+/g,'_').toLowerCase();
+      a.download = `${name || 'formato-unidad'}.html`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      const nDocs = Object.values(currentState.docs).filter(Boolean).length;
+      showToast(`HTML exportado: ${currentState.images.length} imagen(es) y ${nDocs} URL(s) incluidas.`);
+    }catch(err){
+      console.error('Falló la exportación:', err);
+      alert('No se pudo exportar el HTML: ' + err.message);
+    }
+  });
+
+  /* ---------------- reset progress ---------------- */
+  const DEFAULT_FIELDS = {
+    unitName: '',
+    det: '',
+    ubicacion: 'UBICACIÓN',
+    fecha: '',
+    capEyebrow: 'EQUIPO INSTALADO',
+    capTitle: 'Descripción del equipo',
+    stat1lbl: 'Días de operación',
+    stat2lbl: 'Garantía eléctrica',
+    stat3lbl: 'Garantía general',
+    contactText: 'Responsable: __________ · Tel: __________ · Correo: __________',
+    extraValue1: '',
+    extraValue2: '',
+    extraValue3: '',
+    extraValue4: ''
+  };
+  $('#btnReset').addEventListener('click', () => {
+    const sure = confirm('¿Seguro que quieres resetear TODO el progreso? Se perderán textos, imágenes y archivos cargados. Esta acción no se puede deshacer.');
+    if(!sure) return;
+    localStorage.removeItem(STORAGE_KEY);
+    history.replaceState(null, '', location.pathname + location.search);
+    applyState({fields: DEFAULT_FIELDS, category: 'W'});
+    images = [];
+    slideIndex = 0;
+    renderSlides();
+    Object.keys(docs).forEach(key => { docs[key] = null; paintDoc(key); });
+    showToast('Progreso reseteado a los valores originales.');
+  });
+})();
+</script>
+
+
+</body></html>
